@@ -37,3 +37,5 @@ build/
 ### Mac OS ###
 .DS_Store
 .idea/
+docs/dev-ops/docker-compose-environment-aliyun.yml
+/data/
