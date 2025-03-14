@@ -39,3 +39,4 @@ build/
 .idea/
 docs/dev-ops/docker-compose-environment-aliyun.yml
 /data/
+/docs/tag/
