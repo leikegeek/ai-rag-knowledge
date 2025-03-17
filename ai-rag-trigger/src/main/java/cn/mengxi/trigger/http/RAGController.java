@@ -89,20 +89,24 @@ public class RAGController implements IRAGService {
         log.info("知识库上传完成{}", ragTag);
         return Response.<String>builder().code(0).info("调用成功").build();
     }
-
+    /**
+     * @author zhumang
+     * @date 2025/3/15 15:35
+     * @description clone git 仓库然后分割上传至向量库
+     * @params
+     * @return
+     */
     @RequestMapping(value = "analyze_git_repository", method = RequestMethod.POST)
     @Override
     public Response<String> analyzeGitRepository(@RequestParam("repoUrl") String repoUrl, @RequestParam("userName") String userName, @RequestParam("token") String token){
         String localPath = "./git-cloned-repo";
         String repoProjectName = extractProjectName(repoUrl);
         log.info("克隆路径：{}", new File(localPath).getAbsolutePath());
-
         try {
             FileUtils.deleteDirectory(new File(localPath));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         Git git = null;
         try {
             git = Git.cloneRepository()
@@ -122,19 +126,14 @@ public class RAGController implements IRAGService {
                         TikaDocumentReader reader = new TikaDocumentReader(new PathResource(file));
                         List<Document> documents = reader.get();
                         List<Document> documentSplitterList = tokenTextSplitter.apply(documents);
-
                         documents.forEach(doc -> doc.getMetadata().put("knowledge", repoProjectName));
-
                         documentSplitterList.forEach(doc -> doc.getMetadata().put("knowledge", repoProjectName));
-
                         pgVectorStore.accept(documentSplitterList);
                     } catch (Exception e) {
                         log.error("遍历解析路径，上传知识库失败:{}", file.getFileName());
                     }
-
                     return FileVisitResult.CONTINUE;
                 }
-
                 @Override
                 public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
                     log.info("Failed to access file: {} - {}", file.toString(), exc.getMessage());
@@ -145,16 +144,12 @@ public class RAGController implements IRAGService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         RList<String> elements = redissonClient.getList("ragTag");
         if (!elements.contains(repoProjectName)) {
             elements.add(repoProjectName);
         }
-
         git.close();
-
         log.info("遍历解析路径，上传完成:{}", repoUrl);
-
         return Response.<String>builder().code(0).info("调用成功").build();
     }
 
