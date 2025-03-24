@@ -67,6 +67,9 @@ public class RAGController implements IRAGService {
      * @author zhumang
      * @date 2025/3/14 18:47
      * @description Rag 知识上传接口
+     * 修改向量库维度：
+     *    ALTER TABLE vector_store
+     *    ALTER COLUMN embedding TYPE VECTOR(768);
      * @params
      * @return
      */
