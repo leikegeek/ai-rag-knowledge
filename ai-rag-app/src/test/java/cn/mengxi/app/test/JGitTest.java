@@ -7,10 +7,10 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.ai.ollama.OllamaChatClient;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
-import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -25,14 +25,6 @@ import java.io.File;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class JGitTest {
-    @Resource
-    private OllamaChatClient ollamaChatClient;
-    @Resource
-    private TokenTextSplitter tokenTextSplitter;
-    @Resource
-    private SimpleVectorStore simpleVectorStore;
-    @Resource
-    private PgVectorStore pgVectorStore;
 
     @Test
     public void test() throws GitAPIException {

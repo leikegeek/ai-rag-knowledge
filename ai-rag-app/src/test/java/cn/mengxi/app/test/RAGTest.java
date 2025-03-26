@@ -5,19 +5,19 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.ai.chat.ChatResponse;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.ollama.OllamaChatClient;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
-import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @SpringBootTest
 public class RAGTest {
     @Resource
-    private OllamaChatClient ollamaChatClient;
+    private OllamaChatModel ollamaChatModel;
     @Resource
     private TokenTextSplitter tokenTextSplitter;
     @Resource
@@ -66,10 +66,10 @@ public class RAGTest {
                     {documents}
                 """;
 
-        SearchRequest request = SearchRequest.query(message).withTopK(5).withFilterExpression("knowledge == '知识库名称'");
+        SearchRequest request = SearchRequest.builder().query(message).topK(5).filterExpression("knowledge == '知识库名称'").build();
 
         List<Document> documents = pgVectorStore.similaritySearch(request);
-        String documentsCollectors = documents.stream().map(Document::getContent).collect(Collectors.joining());
+        String documentsCollectors = documents.stream().map(Document::getFormattedContent).collect(Collectors.joining());
 
         Message ragMessage = new SystemPromptTemplate(SYSTEM_PROMPT).createMessage(Map.of("documents", documentsCollectors));
 
@@ -77,7 +77,7 @@ public class RAGTest {
         messages.add(new UserMessage(message));
         messages.add(ragMessage);
 
-        ChatResponse chatResponse = ollamaChatClient.call(new Prompt(messages, OllamaOptions.create().withModel("deepseek-r1:1.5b")));
+        ChatResponse chatResponse = ollamaChatModel.call(new Prompt(messages, OllamaOptions.builder().model("deepseek-r1:1.5b").build()));
 
         log.info("测试结果:{}", JSON.toJSONString(chatResponse));
     }
