@@ -2,16 +2,18 @@ package cn.mengxi.trigger.http;
 
 import cn.mengxi.api.IAiService;
 import jakarta.annotation.Resource;
-import org.springframework.ai.chat.ChatResponse;
+
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.ollama.OllamaChatClient;
+
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.api.OllamaOptions;
-import org.springframework.ai.vectorstore.PgVectorStore;
 import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/ollama/")
 public class OllamaController implements IAiService {
     @Resource
-    private OllamaChatClient chatClient;
+    private OllamaChatModel chatModel;
     @Resource
     private PgVectorStore pgVectorStore;
     /**
@@ -43,7 +45,7 @@ public class OllamaController implements IAiService {
     @RequestMapping(value = "generate", method = RequestMethod.GET)
     @Override
     public ChatResponse generate(@RequestParam  String model, @RequestParam String message) {
-        return chatClient.call(new Prompt(message, OllamaOptions.create().withModel(model)));
+        return chatModel.call(new Prompt(message,OllamaOptions.builder().model(model).build()));
     }
     /**
      * @author zhumang
@@ -55,7 +57,7 @@ public class OllamaController implements IAiService {
     @RequestMapping(value = "generate_stream", method = RequestMethod.GET)
     @Override
     public Flux<ChatResponse> generateStream(String model, String message) {
-        return chatClient.stream(new Prompt(message, OllamaOptions.create().withModel(model)));
+        return chatModel.stream(new Prompt(message, OllamaOptions.builder().model(model).build()));
     }
 
     @RequestMapping(value = "generate_stream_rag", method = RequestMethod.GET)
@@ -68,24 +70,22 @@ public class OllamaController implements IAiService {
                 DOCUMENTS:
                     {documents}
                 """;
-
         // 指定文档搜索
-        SearchRequest request = SearchRequest.query(message)
-                .withTopK(5)
-                .withFilterExpression("knowledge == '" + ragTag + "'");
+        SearchRequest request = SearchRequest.builder().query(message).topK(5)
+                .filterExpression("knowledge == '" + ragTag + "'").build();
 
         List<Document> documents = pgVectorStore.similaritySearch(request);
-        String documentCollectors = documents.stream().map(Document::getContent).collect(Collectors.joining());
+        String documentCollectors = documents.stream().map(Document::getFormattedContent).collect(Collectors.joining());
         Message ragMessage = new SystemPromptTemplate(SYSTEM_PROMPT).createMessage(Map.of("documents", documentCollectors));
 
         List<Message> messages = new ArrayList<>();
         messages.add(new UserMessage(message));
         messages.add(ragMessage);
 
-        return chatClient.stream(new Prompt(
+        return chatModel.stream(new Prompt(
                 messages,
-                OllamaOptions.create()
-                        .withModel(model)
+                OllamaOptions.builder()
+                        .model(model).build()
         ));
     }
 }
