@@ -59,4 +59,5 @@ redis:
 logging:
   level:
     root: info
+    org.springframework: debug
   config: classpath:logback-spring.xml

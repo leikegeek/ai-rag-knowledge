@@ -8,6 +8,7 @@
     <artifactId>ai-rag-knowledge</artifactId>
     <version>1.0</version>
     <packaging>pom</packaging>
+
     <modules>
         <module>ai-rag-api</module>
         <module>ai-rag-app</module>
@@ -93,7 +94,7 @@
 
             <dependency>
                 <groupId>cn.mengxi</groupId>
-                <artifactId>ai-rag-pai</artifactId>
+                <artifactId>ai-rag-api</artifactId>
                 <version>1.0</version>
             </dependency>
             <dependency>

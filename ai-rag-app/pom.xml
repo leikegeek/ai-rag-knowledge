@@ -86,7 +86,7 @@
     </dependencies>
 
     <build>
-        <finalName>ai-rag-knowledge-app</finalName>
+        <finalName>ai-rag-app</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -122,7 +122,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>cn.mengxi.Application</mainClass>
+                    <mainClass>cn.mengxi.app.Application</mainClass>
                     <layout>JAR</layout>
                 </configuration>
             </plugin>
